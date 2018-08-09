@@ -1,0 +1,307 @@
+---
+title: "Spatial Boundary Examples"
+author: "Zarrar Khan"
+output: 
+  html_document:
+          toc: true
+          toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+Examples of spatial boundaries used for GCAm regional and subregional analysis
+
+```{r, echo=F,cache=T, message=F}
+#-----------------
+# Intial Setup
+#-----------------
+
+rm(list=ls()) # Clear all old variables
+graphics.off() # Turn of Graphics
+
+# Load Libraries
+packagesX     <-c("ggplot2","RColorBrewer","reshape2","magrittr","plyr","dplyr","tools","scales","rgcam","rgdal","rgeos","raster","tmap","animation","tis","tibble","classInt","sp","geosphere","Hmisc","gridExtra","grid","kableExtra")
+for(i in packagesX){if(i %in% rownames(installed.packages()) == FALSE){install.packages(i)}
+                    library(i,character.only = TRUE)}
+
+# Working Directories
+wd0           <- getwd()
+wdSpat        <- dirname(dirname(wd0))
+
+# ggplot2 Theme
+z_theme <<- theme_bw() + 
+  theme(
+    text =                element_text(family = NULL, face = "plain",colour = "black", size = 24 ,hjust = 0.5, vjust = 0.5, angle = 0, lineheight = 0.9)
+    , axis.text.x =       element_text(size=24)
+    , axis.text.y =       element_text(size=24)
+    ,axis.title.x =       element_text(vjust = -1, margin=margin(t=1,unit="line"))
+    ,axis.title.y =       element_text(angle = 90, vjust = 2, margin=margin(r=1,unit="line"))
+    ,legend.key =         element_blank()
+    ,legend.key.size =    unit(1.5, 'lines')
+    ,legend.text =        element_text(size = rel(1.0), colour = "black")
+    ,legend.title =       element_text(size = rel(1.2), face = NULL, hjust = 0, colour = "black")
+    ,strip.background =   element_rect(fill = NA, colour = "black")
+    ,plot.margin =        unit(c(1, 1, 1, 1), "lines")
+    ,plot.title=          element_text(face="bold", hjust=0,size=40,margin = margin(b=20))
+  )
+
+z_tmap<-tm_legend(outside = TRUE,title.size=2.5,text.size = 2,height=2,width=2)
+
+```
+
+
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+#-----------------
+# Read in Spaital Data
+#-----------------
+
+# Read in Spatial Data
+gadm36L1 <- readOGR(paste(wdSpat,"/gadm",sep=""),"gadm36_1",use_iconv=T,encoding='UTF-8') # GADM data from https://gadm.org/
+
+shp_PNNL235Basins<<-readOGR(paste(wdSpat,"/boundaries_PNNLChrisVernon/shp",sep=""),"Global235_CLM_final_5arcmin_multipart",use_iconv=T,encoding='UTF-8')
+shp_PNNL32Reg<<-readOGR(paste(wdSpat,"/boundaries_PNNLChrisVernon/shp",sep=""),"region32_0p5deg",use_iconv=T,encoding='UTF-8')
+LookupTable_PNNL32Region<-data.frame(reg32_id=c(0:32),
+                                     GCAM_region=c("0","USA","Africa_Eastern","Africa_Northern","Africa_Southern",
+                                                   "Africa_Western","Australia_NZ","Brazil","Canada",
+                                                   "Central America and Caribbean","Central Asia","China","EU-12",
+                                                   "EU-15","Europe_Eastern","Europe_Non_EU","European Free Trade Association",
+                                                   "India","Indonesia","Japan","Mexico",
+                                                   "Middle East","Pakistan","Russia","South Africa",
+                                                   "South America Northern","South America_Southern","South Asia","South Korea",
+                                                   "Southeast Asia","Taiwan","Argentina","Colombia"))
+
+shp_PNNL32Reg@data<-join(shp_PNNL32Reg@data,LookupTable_PNNL32Region,by=c("reg32_id")); head(shp_PNNL32Reg@data)
+
+#Basins
+# HydroBasins Levels Basins
+shp_HydroBasinsLev3<<-readOGR(paste(wdSpat,"/HydroBASINS/hydrobasins_processed",sep=""),"hydrobasins_level_3",use_iconv=T,encoding='UTF-8')
+
+#SubBasins
+# Colombia Sub-Basins
+shp_SIACHydroZones<<-readOGR(paste(wdSpat,"/Zonificacion_hidrografica_2013",sep=""),"Zonificacion_hidrografica_2013",use_iconv=T,encoding='UTF-8')
+
+projX    <- proj4string(gadm36L1) # Set projections
+shp_PNNL32Reg<<-spTransform(shp_PNNL32Reg, CRS(projX))
+shp_PNNL235Basins<<-spTransform(shp_PNNL235Basins, CRS(projX))
+shp_SIACHydroZones<<-spTransform(shp_SIACHydroZones, CRS(projX))
+shp_HydroBasinsLev3<<-spTransform(shp_HydroBasinsLev3, CRS(projX))
+
+
+```
+
+
+
+# GCAM 32 Regions
+```{r,echo=F,cache=T, message=F, warning=F, results='hide'}
+
+m0GCAMRegions<-qtm(shp_PNNL32Reg,fill="ID")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+m0GCAMRegions
+```
+
+# GCAM 255 Basins
+```{r,echo=F,cache=T, message=F, warning=F, results='hide'}
+m0GCAMBasins<-qtm(shp_PNNL235Basins,fill="basin_id")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+m0GCAMBasins
+```
+
+# GCAM LAC Regions
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+# GCAM LAC Regions
+LAC_reg<-c("Argentina","Brazil","Central America and Caribbean","Colombia","Mexico","South America Northern","South America_Southern")
+shp_PNNL_LAC<-shp_PNNL32Reg[shp_PNNL32Reg$GCAM_region %in% LAC_reg,]
+shp_PNNL_LAC@data<-droplevels(shp_PNNL_LAC@data)
+
+m0GCAMLAC<-qtm(shp_PNNL_LAC,fill="GCAM_region")+tm_layout(legend.show=T,frame=F,legend.outside = T,legend.outside.position=c("left"),legend.text.size=0.8, legend.title.size = 2);
+
+m0GCAMLAC
+```
+
+# GCAM LAC Basins
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+shp_PNNL_LACBasins<-raster::crop(shp_PNNL235Basins,shp_PNNL_LAC)
+shp_PNNL_LACBasins@data<-droplevels(shp_PNNL_LACBasins@data);
+head(shp_PNNL_LACBasins)
+m0GCAMLACBasins<-qtm(shp_PNNL_LACBasins,fill="basin_name")+tm_layout(legend.show=T,frame=F,title="",title.size=2,title.position=c("right","top"),legend.outside=T,legend.outside.position = "right", legend.text.size = 1,legend.title.size = 2)
+
+m0GCAMLACBasins
+
+df<-shp_PNNL_LACBasins@data%>%dplyr::mutate(No.=seq(1:nrow(.)))%>%dplyr::select(No.,basin_id,basin_name)
+```
+
+# GCAM LAC Basin List
+```{r, echo=F,cache=T, message=F, warning=F, results='asis'}
+kable(df) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+# GCAM LAC Regions overlapped with Basins
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+
+m0GCAMLACBasinsRegs<-qtm(shp_PNNL_LACBasins,fill="basin_name",text="basin_id",text.size=0.5)+tm_layout(legend.show=F,frame=F)+tm_shape(shp_PNNL_LAC) + tm_borders(col="black",lwd=2,lty=1)
+
+shp_PNNL_LACIntersect<-raster::intersect(shp_PNNL_LACBasins,shp_PNNL_LAC)
+shp_PNNL_LACIntersect@data<-droplevels(shp_PNNL_LACIntersect@data);
+m0GCAMLACIntersect<-qtm(shp_PNNL_LACIntersect,fill="basin_id",text="basin_id")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"),legend.outside=T,legend.outside.position = "right", legend.text.size = 1)
+
+tmap_arrange(m0GCAMLAC+tm_layout(legend.show=F),m0GCAMLACBasins+tm_layout(legend.show=F),ncol=2)
+m0GCAMLACBasinsRegs
+
+df<-shp_PNNL_LACIntersect@data%>%dplyr::select(c(basin_name,basin_id,GCAM_region))%>%
+  distinct(basin_name,basin_id,GCAM_region)
+missing<-as.character(unique(shp_PNNL_LACBasins$basin_name))[!(as.character(unique(shp_PNNL_LACBasins$basin_name)) %in% as.character(unique(shp_PNNL_LACIntersect$basin_name)))]
+dfPampas<-data.frame(basin_name="Pampas_Region",basin_id="209",GCAM_region="Argentina")
+df<-rbind.data.frame(df,dfPampas)%>%dplyr::arrange(basin_id)%>%dplyr::mutate(No.=seq(1:nrow(.)))%>%dplyr::select(No.,basin_id,basin_name,GCAM_region)
+```
+
+# GCAM LAC Regions & Basins List
+```{r, echo=F,cache=T, message=F, warning=F, results='asis'}
+kable(df) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+# Example Region Colombia
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+
+
+# Choose Region
+region_i<-"Colombia" # Must be region in the GADM data
+
+# Crop Shapefile to selcted region
+shpa1<-gadm36L1  
+shpa1<-shpa1[shpa1$NAME_0==region_i,]
+shpa1@data<-droplevels(shpa1@data);
+
+# Plot Selected Region
+m1<-qtm(shpa1,fill="NAME_1")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+# Create a larger Bounding Box for Display
+expPrcnt<-2; # Expand by Percent
+b1<-as.data.frame(bbox(shpa1))   # Get Bounding box
+b1$min[1]<-if(b1$min[1]<0){(1+expPrcnt/100)*b1$min[1]}else{(1-expPrcnt/100)*b1$min[1]};
+b1$min[2]<-if(b1$min[2]<0){(1+expPrcnt/100)*b1$min[2]}else{(1-expPrcnt/100)*b1$min[2]};
+b1$max[1]<-if(b1$max[1]<0){(1-expPrcnt/100)*b1$max[1]}else{(1+expPrcnt/100)*b1$max[1]};
+b1$max[2]<-if(b1$max[2]<0){(1-expPrcnt/100)*b1$max[2]}else{(1+expPrcnt/100)*b1$max[2]};
+b1<-as(extent(as.vector(t(b1))), "SpatialPolygons")
+proj4string(b1)<-CRS(projX) # ASSIGN COORDINATE SYSTEM
+
+# GADM Boundaries Bounding Box
+shpb1<-raster::crop(gadm36L1,b1)
+shpb1@data<-droplevels(shpb1@data)
+#m1a<-qtm(shpb1,text="NAME_1",fill="NAME_1")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+# Crop Shapefile to selcted region
+shp_basin<-shp_HydroBasinsLev3  
+shpbasin<-raster::crop(shp_basin,shpa1)
+shpbasin@data<-droplevels(shpbasin@data)
+m2<-qtm(shpbasin,fill="HYBAS_ID")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+# Crop Shapefile to selcted region
+shpsubBasin<-shp_SIACHydroZones 
+m3<-qtm(shpsubBasin,fill="NOM_SZH")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+
+#-----------------
+# Read in Raster Data
+#-----------------
+
+# Read in Data Files (Tethys example file, Chosoe year X2005)
+df<- read.csv(paste(getwd(),"/wdirr.csv",sep=""), stringsAsFactors = F)
+colnames(df)[which(names(df) == "latitude")] <- "lat"
+colnames(df)[which(names(df) == "longitude")] <- "lon"
+df<-df%>%dplyr::select(X..ID,lat,lon,X2005)
+
+# CREATE RASTER FILE FOR DATA
+r<-df%>%dplyr::select(lat,lon,X2005)
+coordinates(r)=~lon+lat
+gridded(r)<-T
+r<-raster(r)
+projection(r)<-projX
+
+rcrop<-raster::intersect(r,b1)
+rcropP<-rasterToPolygons(rcrop)
+mras<-tm_shape(rcrop)+tm_raster(col="X2005",style="kmeans",n=10)+z_tmap+
+  tm_shape(rcropP)+tm_borders("gray40",lwd=0.2, lty=1)+tm_dots()+
+  tm_shape(shpa1)+tm_borders("black",lwd=1, lty=1)+tm_fill("gray",alpha=0.1)+tm_layout(title="",title.size=2);
+```
+
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+tmap_arrange(m1,m2,m3,ncol=3)
+mras
+```
+
+# Example Region Argentina
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+
+
+# Choose Region
+region_i<-"Argentina" # Must be region in the GADM data
+
+# Crop Shapefile to selcted region
+shpa1<-gadm36L1  
+shpa1<-shpa1[shpa1$NAME_0==region_i,]
+shpa1@data<-droplevels(shpa1@data);
+
+# Plot Selected Region
+m1<-qtm(shpa1,fill="NAME_1")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+# Create a larger Bounding Box for Display
+expPrcnt<-2; # Expand by Percent
+b1<-as.data.frame(bbox(shpa1))   # Get Bounding box
+b1$min[1]<-if(b1$min[1]<0){(1+expPrcnt/100)*b1$min[1]}else{(1-expPrcnt/100)*b1$min[1]};
+b1$min[2]<-if(b1$min[2]<0){(1+expPrcnt/100)*b1$min[2]}else{(1-expPrcnt/100)*b1$min[2]};
+b1$max[1]<-if(b1$max[1]<0){(1-expPrcnt/100)*b1$max[1]}else{(1+expPrcnt/100)*b1$max[1]};
+b1$max[2]<-if(b1$max[2]<0){(1-expPrcnt/100)*b1$max[2]}else{(1+expPrcnt/100)*b1$max[2]};
+b1<-as(extent(as.vector(t(b1))), "SpatialPolygons")
+proj4string(b1)<-CRS(projX) # ASSIGN COORDINATE SYSTEM
+
+# GADM Boundaries Bounding Box
+shpb1<-raster::crop(gadm36L1,b1)
+shpb1@data<-droplevels(shpb1@data)
+#m1a<-qtm(shpb1,text="NAME_1",fill="NAME_1")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+# Crop Shapefile to selcted region
+shp_basin<-shp_PNNL235Basins 
+shpbasin<-raster::crop(shp_basin,shpa1)
+shpbasin@data<-droplevels(shpbasin@data)
+m2<-qtm(shpbasin,fill="basin_id")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+# Crop Shapefile to selcted region
+shpsubBasin<-shp_HydroBasinsLev3 
+shpsubBasin<-raster::crop(shpsubBasin,shpa1)
+shpsubBasin@data<-droplevels(shpsubBasin@data)
+m3<-qtm(shpsubBasin,fill="HYBAS_ID")+tm_layout(legend.show=F,frame=F,title="",title.size=2,title.position=c("right","top"))
+
+
+#-----------------
+# Read in Raster Data
+#-----------------
+
+# Read in Data Files (Tethys example file, Chosoe year X2005)
+df<- read.csv(paste(getwd(),"/wdirr.csv",sep=""), stringsAsFactors = F)
+colnames(df)[which(names(df) == "latitude")] <- "lat"
+colnames(df)[which(names(df) == "longitude")] <- "lon"
+df<-df%>%dplyr::select(X..ID,lat,lon,X2005)
+
+# CREATE RASTER FILE FOR DATA
+r<-df%>%dplyr::select(lat,lon,X2005)
+coordinates(r)=~lon+lat
+gridded(r)<-T
+r<-raster(r)
+projection(r)<-projX
+
+rcrop<-raster::intersect(r,b1)
+rcropP<-rasterToPolygons(rcrop)
+mras<-tm_shape(rcrop)+tm_raster(col="X2005",style="kmeans",n=10)+z_tmap+
+  tm_shape(rcropP)+tm_borders("gray40",lwd=0.2, lty=1)+tm_dots()+
+  tm_shape(shpa1)+tm_borders("black",lwd=1, lty=1)+tm_fill("gray",alpha=0.1)+tm_layout(title="",title.size=2);
+```
+
+```{r, echo=F,cache=T, message=F, warning=F, results='hide'}
+tmap_arrange(m1,m2,m3,ncol=3)
+mras
+```
