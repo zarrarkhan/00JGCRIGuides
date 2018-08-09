@@ -95,6 +95,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -357,17 +360,17 @@ module load gcc/5.2.0</code></pre>
 </ul>
 <pre class="r"><code>git clone https://stash.pnnl.gov/scm/jgcri/gcam-core.git</code></pre>
 <ul>
-<li>On the stash page check the version of GCAM that you want to work with. Ask the PNNL team member you are working with about which branch to use. Checkout the branch:</li>
-</ul>
-<pre class="r"><code>git checkout ENTER_BRANCH_NAME_HERE</code></pre>
-<ul>
 <li>Enter the GCAM WorkSpace:</li>
 </ul>
 <pre class="r"><code>cd ./gcam-core</code></pre>
 <ul>
+<li>On the stash page check the version of GCAM that you want to work with. Ask the PNNL team member you are working with about which branch to use. Checkout the branch:</li>
+</ul>
+<pre class="r"><code>git checkout ENTER_BRANCH_NAME_HERE</code></pre>
+<ul>
 <li>Load Hector</li>
 </ul>
-<pre class="r"><code>git submodule init ./cvs/objects/climate/source/hector &gt; 
+<pre class="r"><code>git submodule init ./cvs/objects/climate/source/hector
 git submodule update ./cvs/objects/climate/source/hector</code></pre>
 <ul>
 <li>Build GCAM (Need to Load Modules again)</li>
@@ -504,6 +507,7 @@ date</code></pre>
 </div>
 <div id="key-files-to-edit-for-scenarios" class="section level1">
 <h1>Key Files to Edit for Scenarios</h1>
+<pre><code>## Warning: package 'kableExtra' was built under R version 3.4.4</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
