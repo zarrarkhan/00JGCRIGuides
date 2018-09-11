@@ -140,8 +140,10 @@ ls -l gcam.exe
     - In gcam-core/input/gcam-data-system/energy-data/level0 need to add "en_nonOECD.sv" and "en_OECD.csv". If you don't have these files you will need to get these from a staff member at PNNL-JGCRI
     - In PuTTY:
 ```{r, echo=T,cache=F, eval=F,message=F}
+cd ../ # In order to leave the exe folder from above and go to the gcam-core folder
 cd ./input/gcam-data-system
 module load R/3.3.3
+# Make sure the "en_nonOECD.csv" and "en_OECD.csv" are copied into the folder before running make
 make clean
 make
 ```
@@ -239,7 +241,7 @@ squeue -u USERNAME # to check the status of your run
         
 # Key Files to Edit for Scenarios
 
-```{r, echo=F,results='asis'}
+```{r, echo=F,results='asis',message=F}
 library(kableExtra)
 text_tbl <- data.frame(
   Theme = c("Population", "Energy Technology Mix", "Irrigation Expansion", "Agricultural Production", "NDCs and Emissions"),

@@ -396,8 +396,10 @@ ls -l gcam.exe</code></pre>
 <li>In PuTTY:</li>
 </ul></li>
 </ul>
-<pre class="r"><code>cd ./input/gcam-data-system
+<pre class="r"><code>cd ../ # In order to leave the exe folder from above and go to the gcam-core folder
+cd ./input/gcam-data-system
 module load R/3.3.3
+# Make sure the &quot;en_nonOECD.csv&quot; and &quot;en_OECD.csv&quot; are copied into the folder before running make
 make clean
 make</code></pre>
 </div>
