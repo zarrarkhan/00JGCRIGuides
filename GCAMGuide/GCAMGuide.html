@@ -461,6 +461,14 @@ date</code></pre>
 &lt;/ComponentSet&gt;
  
 &lt;/BatchRunner&gt;</code></pre>
+<ul>
+<li><strong>Run Model:</strong> In PuTTY go to your gcam-core/exe folder and then type the following commands. After your run has been submitted the status will show “PD” for pending and “R” for running. After the run has been completed you can check the exe folder for a file named “slurmXXX” where XXX is the JOBID. This is a log of the model run. You can also see the complete log in “master.log”.</li>
+</ul>
+<pre class="r"><code>cd ./exe
+sbatch -J config-ref run-gcam.zsh  # Where &quot;config-ref&quot; is the configuration file.
+squeue -u USERNAME # to check the status of your run
+# scancel JOBID  # This can be used to cancel a job which is in progress
+# After run check &quot;slurmXXX&quot; where XX is JOBID or &quot;master.log&quot; in the exe folder for model run stats.</code></pre>
 </div>
 <div id="model-interface-viewing-data" class="section level1">
 <h1>Model Interface (Viewing Data)</h1>

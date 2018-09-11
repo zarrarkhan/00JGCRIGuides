@@ -198,6 +198,16 @@ date
 </BatchRunner>
 ```
 
+- **Run Model:** In PuTTY go to your gcam-core/exe folder and then type the following commands. After your run has been submitted the status will show "PD" for pending and "R" for running. After the run has been completed you can check the exe folder for a file named "slurmXXX" where XXX is the JOBID. This is a log of the model run. You can also see the complete log in "master.log".
+```{r, echo=T,cache=F, eval=F,message=F}
+cd ./exe
+sbatch -J config-ref run-gcam.zsh  # Where "config-ref" is the configuration file.
+squeue -u USERNAME # to check the status of your run
+# scancel JOBID  # This can be used to cancel a job which is in progress
+# After run check "slurmXXX" where XX is JOBID or "master.log" in the exe folder for model run stats.
+```
+
+
 # Model Interface (Viewing Data)
 - Once GCAM has run it will output all its data into a database to the gcam-core/output folder. The name of the database by default is database_basexdb but this can be changed in the configuration file described above.
 - For viewing the data there is a tool called "Model Interface" which is found in any of the release versions of GCAM. This can be downloaded from the github page https://github.com/JGCRI/gcam-core/releases. The "Model Interface" can be found in gcam-core/ModelInterface. Follow the instruction on the github page to install the release version. It may need additional installations of java, XML Maker and R.
