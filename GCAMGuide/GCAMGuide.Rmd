@@ -152,7 +152,7 @@ make
     - gcam.zsh
     - configuration.xml (can have another name eg. conifugration_ref.xml)
     - batch.xml (can have other names)
-- **gcam.zsh:**This file is in BASH and calls the configuration file. It will not be in your cloned version and you need to create or copy it. See the instructions in the "Installing GCAM on PIC". Within this file will be a line "-Cconfig-$job.xml". This line means the configuration file needs to be named config-NAME.xml where NAME is whatever you choose to name your configuration file.The gcam.zsh file includes the following lines of code (more details are explained in the Installing GCAM on PIC guide):
+- **gcam.zsh:**This file is in BASH and calls the configuration file. It will not be in your cloned version and you need to create or copy it. See the instructions in the "Installing GCAM on PIC". Within this file will be a line "-Cconfig-\$job.xml". If you change this to "-C\$job.xml" then you can call the configuration file by whatever name you call it. This line means the configuration file needs to be named config-NAME.xml where NAME is whatever you choose to name your configuration file.The gcam.zsh file includes the following lines of code (more details are explained in the Installing GCAM on PIC guide):
 Note: You will need the correct account name to run a GCAM run on PIC. This will be provided by the scientists working in your project.
 ```{bash, echo=T,cache=F, eval=F,message=F}
 #!/bin/zsh
@@ -163,7 +163,7 @@ job=$SLURM_JOB_NAME
 echo 'Library config:'
 ldd ./gcam.exe
 date
-time ./gcam.exe -Cconfig-$job.xml -Llog_conf.xml
+time ./gcam.exe -C$job.xml -Llog_conf.xml
 date
 ```
 - **configuration.xml:** This will be named by the user and have a format based on how it was defined in the gcam.zsh as explained above. For example it could be config-ref.xml. Within this file a few key items are usually edited. key items to edit (Will need to search for these):
@@ -171,6 +171,15 @@ date
     - <Value name="scenarioName">Reference</Value> (The Name of your reference scenario)
     - <Value name="BatchMode">1</Value> (Make sure this is 1 if a batch file is included)
     - <Value name="stop-period">-1</Value> (Leave -1 if want to run for all periods otherwise period 0 is upto 1975, 1 is upto 1990, 2 upto 2005, 3 upto 2010, 4 upto 2015 and so on in increments of 5 years per period. Setting this to 11 will stop the model in and including the year 2050.
+- **Run Model:** In PuTTY go to your gcam-core/exe folder and then type the following commands. After your run has been submitted the status will show "PD" for pending and "R" for running. After the run has been completed you can check the exe folder for a file named "slurmXXX" where XXX is the JOBID. This is a log of the model run. You can also see the complete log in "master.log".
+```{r, echo=T,cache=F, eval=F,message=F}
+# You may have to load the various modules again if you reopen PIC before run
+cd ../.././exe   # Need to be in  gcam-core/exe
+sbatch -J config-ref run-gcam.zsh  # Where "config-ref" is the configuration file.
+squeue -u USERNAME # to check the status of your run
+# scancel JOBID  # This can be used to cancel a job which is in progress
+# After run check "slurmXXX" where XX is JOBID  in the exe folder or "main_log.txt" in the exe/logs folder for model run stats.
+```
 - **batch.xml:** This file is used to run combination of multiple scenarios. In this file we include various "add-on" xml files which then replace existing data. This file may also not be in the cloned version and will need to be created or copied.It should also be place in the exe folder. 
     - In this batch file we have "ComponentSet" and the "FileSet". The component sets can be thought of as broader themes and the files within each component are different scenarios to be explored. Each element or "FileSet" within each component will be combined with elements from all other components. So in the example above the model will run GasRef+Theme2Ref, GasRef+Theme2Changes, GasHi+Theme2Ref and GasHi+Theme2Changes. The file set names are appended together.
     - Within each file set we include the "add-on" xml files which overwrite existing data inputs. These can be new population projects, carbon policies or caps, changes in technology prices or changing the shareweights of technologies like nuclear or coal for example. These changes are discuss in a separate section below.
@@ -200,14 +209,6 @@ date
 </BatchRunner>
 ```
 
-- **Run Model:** In PuTTY go to your gcam-core/exe folder and then type the following commands. After your run has been submitted the status will show "PD" for pending and "R" for running. After the run has been completed you can check the exe folder for a file named "slurmXXX" where XXX is the JOBID. This is a log of the model run. You can also see the complete log in "master.log".
-```{r, echo=T,cache=F, eval=F,message=F}
-cd ./exe
-sbatch -J config-ref run-gcam.zsh  # Where "config-ref" is the configuration file.
-squeue -u USERNAME # to check the status of your run
-# scancel JOBID  # This can be used to cancel a job which is in progress
-# After run check "slurmXXX" where XX is JOBID or "master.log" in the exe folder for model run stats.
-```
 
 
 # Model Interface (Viewing Data)
@@ -241,7 +242,7 @@ squeue -u USERNAME # to check the status of your run
         
 # Key Files to Edit for Scenarios
 
-```{r, echo=F,results='asis',message=F}
+```{r, echo=F,message=F,warning=F,results='asis'}
 library(kableExtra)
 text_tbl <- data.frame(
   Theme = c("Population", "Energy Technology Mix", "Irrigation Expansion", "Agricultural Production", "NDCs and Emissions"),
@@ -267,7 +268,7 @@ kable(text_tbl) %>%
 # Input Data Sources & Files
 
 
-```{r, echo=F,results='asis'}
+```{r, echo=F,results='asis',message=F,warning=F}
 library(kableExtra)
 text_tbl <- data.frame(
   Parameter = c("Population", "Energy Mix", "Primary Energy", "Final Energy", "Water Demands", "Water Withdrawals", "Water Consumption", "Agricultural Production"),
