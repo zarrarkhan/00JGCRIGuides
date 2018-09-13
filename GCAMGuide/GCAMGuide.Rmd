@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 options(knitr.table.format = "html")
 ```
 
+<base target="_top"/>
+
 # Introduction
 
 - This guide does not replace the more detailed documents and links provided below. It is meant to summarize some of the key issues for visitors when they come and first set up GCAM.
