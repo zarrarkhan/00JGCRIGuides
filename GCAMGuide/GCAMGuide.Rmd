@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 options(knitr.table.format = "html")
 ```
 
-<base target="_top"/>
+<base target="_blank"/>
 
 # Introduction
 
