@@ -92,7 +92,10 @@ options(knitr.table.format = "html")
     - You can login with your US and Passcode
     
     
-# Installing GCAM on PIC
+# Run Release Version
+    
+    
+# Install GCAM on PIC
 - **Access GCAM Folder**: Make sure you have access to the GCAM folder on pic which has the libraries by emailing pic-support@pnnl.gov and asking for access.
 - **Confluence Guide:** https://confluence.pnnl.gov/confluence/display/JGCRI/Setting+up+GCAM+on+PIC
 - Login to PIC from PuTTY
@@ -149,6 +152,7 @@ module load R/3.3.3
 make clean
 make
 ```
+
 # Run GCAM on PIC
 - **Key Files:** In gcam-core/exe you will edit the following key files:
     - gcam.zsh
@@ -182,6 +186,22 @@ squeue -u USERNAME # to check the status of your run
 # scancel JOBID  # This can be used to cancel a job which is in progress
 # After run check "slurmXXX" where XX is JOBID  in the exe folder or "main_log.txt" in the exe/logs folder for model run stats.
 ```
+
+
+# Install GCAM on Desktop
+
+# Run GCAM on Desktop
+
+
+# Run Batch Scenarios
+- **Key Files:** In gcam-core/exe you will edit the following key files:
+    - configuration.xml
+    - batch.xml (can have other names)
+
+- **configuration.xml:** Change the following lines in the configuration file:
+    - <Value name="BatchFileName">batch.xml</Value> (Make sure batch.xml is the same name as your batch file)
+    - <Value name="BatchMode">1</Value> (Make sure this is 1 if a batch file is included)
+ 
 - **batch.xml:** This file is used to run combination of multiple scenarios. In this file we include various "add-on" xml files which then replace existing data. This file may also not be in the cloned version and will need to be created or copied.It should also be place in the exe folder. 
     - In this batch file we have "ComponentSet" and the "FileSet". The component sets can be thought of as broader themes and the files within each component are different scenarios to be explored. Each element or "FileSet" within each component will be combined with elements from all other components. So in the example above the model will run GasRef+Theme2Ref, GasRef+Theme2Changes, GasHi+Theme2Ref and GasHi+Theme2Changes. The file set names are appended together.
     - Within each file set we include the "add-on" xml files which overwrite existing data inputs. These can be new population projects, carbon policies or caps, changes in technology prices or changing the shareweights of technologies like nuclear or coal for example. These changes are discuss in a separate section below.
@@ -211,24 +231,8 @@ squeue -u USERNAME # to check the status of your run
 </BatchRunner>
 ```
 
+# Build Batch Scenarios
 
-
-# Model Interface (Viewing Data)
-- Once GCAM has run it will output all its data into a database to the gcam-core/output folder. The name of the database by default is database_basexdb but this can be changed in the configuration file described above.
-- For viewing the data there is a tool called "Model Interface" which is found in any of the release versions of GCAM. This can be downloaded from the github page https://github.com/JGCRI/gcam-core/releases. The "Model Interface" can be found in gcam-core/ModelInterface. Follow the instruction on the github page to install the release version. It may need additional installations of java, XML Maker and R.
-- Use WinSCP to drag the output database from your PIC output folder to a local folder on your computer. You will view the data offline locally on your computer.
-- The "Model Interface" read in different queries which are based on a query file which is an .xml file.
-- This query file is defined in gcam-core/ModelInterface in the "model_interface.properties"
-- The Main_queries file lying in "gcam-core/output/queries" can be modified to get relevant queries for the analysis.
-- Inside gcam-core/ModelInterface:
-    - click on "run-model-interface.bat"
-    - Click File>Open>DB Open and then point to the output database that you copied from PIC into your local drive.
-    - This will open the ModelInterface and it will show you all the scenarios you ran from your batch.xml, the different regions and a list of queries as shown below.
-    - To edit the query file being read open the "model_interface.properties" file and change the line which says: "<entry key="queryFile">..\output\queries\Main_queries.xml</entry>"
-    
-![PuTTY Configuration](figures/modelInterfaceEg.png)
-
-# Prepare Add-on Scenario
 - In the batch file in each "FileSet" we can add the path to an ".xml" file which basically overwrites the existing data with new data.
 - The "add-on" .xml files are usually kept in gcam-core/input/policy. You will need to find out which .xml file needs to be changed to create the new policy depending on what you are trying to achieve. This is explained further in the section below.
 - Two ways to create these are:
@@ -242,7 +246,7 @@ squeue -u USERNAME # to check the status of your run
         - Save the file as an .xml.
         - The path to this file can now be added in your bacth.xml as part of your scenario "FileSet".
         
-# Key Files to Edit for Scenarios
+# Key files to Modify Scenarios
 
 ```{r, echo=F,message=F,warning=F,results='asis'}
 library(kableExtra)
@@ -267,8 +271,84 @@ kable(text_tbl) %>%
   
 ```
 
-# Input Data Sources & Files
 
+# View Data Model Interface
+- Once GCAM has run it will output all its data into a database to the gcam-core/output folder. The name of the database by default is database_basexdb but this can be changed in the configuration file described above.
+- For viewing the data there is a tool called "Model Interface" which is found in any of the release versions of GCAM. This can be downloaded from the github page https://github.com/JGCRI/gcam-core/releases. The "Model Interface" can be found in gcam-core/ModelInterface. Follow the instruction on the github page to install the release version. It may need additional installations of java, XML Maker and R.
+- Use WinSCP to drag the output database from your PIC output folder to a local folder on your computer. You will view the data offline locally on your computer.
+- The "Model Interface" read in different queries which are based on a query file which is an .xml file.
+- This query file is defined in gcam-core/ModelInterface in the "model_interface.properties"
+- The Main_queries file lying in "gcam-core/output/queries" can be modified to get relevant queries for the analysis.
+- Inside gcam-core/ModelInterface:
+    - click on "run-model-interface.bat"
+    - Click File>Open>DB Open and then point to the output database that you copied from PIC into your local drive.
+    - This will open the ModelInterface and it will show you all the scenarios you ran from your batch.xml, the different regions and a list of queries as shown below.
+    - To edit the query file being read open the "model_interface.properties" file and change the line which says: "<entry key="queryFile">..\output\queries\Main_queries.xml</entry>"
+    
+![PuTTY Configuration](figures/modelInterfaceEg.png)
+
+
+# View Data in R
+
+In order to view data in R the following is needed:
+
+  - A folder where the R script is saved
+  - A folder for outputs (can be the same as the R script folder)
+  - A gcam database with the full location address
+  - A query file which has been formatted correctly to be read by R
+
+```{r, echo=T,cache=F, eval=F,message=F}
+
+library(ggplot2);library(dplyr); library(rgcam) # Install packages first if necessary
+
+wd0   <- "D:/Example/example_gcamFolder/output"  # Folder for save outputs
+setwd(wd0)
+
+myDB  <- "database_basexdb"          # Name of GCAM database
+wddb  <- "D:/Example/example_gcamFolder/output"  # Location of GCAM database
+connx <- localDBConn(wddb, myDB)    # Connect to database
+
+# Running connx will give a list of the scenarios in the gcam database
+scenariosAnalyze<-c("Scenario1","Scenario2") # Choose and create list of scenarios to analyze
+myQueryfile <- "D:/Example/example_Folder/myQuery.xml"  # Full path to R formatted query.xml file
+
+reReadData=0;
+if(reReadData==1){
+# Create a proj file and add data from each chosen scenario
+for (scenario_i in scenariosAnalyze){
+queryData.proj<<-addScenario(conn=connx, proj="queryData.proj",scenario=scenario_i,queryFile=myQueryfile)  # Check your queries file
+}} else {queryData.proj<-loadProject("queryData.proj")
+  }
+
+lscen <-listScenarios(queryData.proj);lscen  # List of Scenarios that were read
+lquer <-listQueries(queryData.proj);lquer    # List of queries that were read
+getQuery(queryData.proj,"Primary Energy Consumption (Direct Equivalent")   # Example to view a query
+
+params <- c("ag production by tech","Primary Energy Consumption (Direct Equivalent") # Choose your parameters
+
+for (param_i in params){ # Run for each param
+# Get Data
+df <- getQuery(queryData.proj, param_i)%>%
+  filter(region=="Argentina")
+
+#Create Plot
+plot <- ggplot(data=df,aes(x=year,y=value,group=sector,fill=sector)) + 
+  geom_bar(aes(),stat="identity",position="stack") + 
+  facet_wrap(~scenario)
+
+# Save Plot (Can change resolution and dimensions)
+png(paste(param_i,".png",sep=""),width=13,height=9, units="in",res=300)
+print(plot)
+dev.off()
+
+# Save Table
+write.csv(df,file=paste(param_i,".csv",sep=""),row.names=F)
+}
+```
+
+![Example Figure](figures/exampleRfig.png)
+
+# Input Data Sources & Files
 
 ```{r, echo=F,results='asis',message=F,warning=F}
 library(kableExtra)
@@ -298,3 +378,4 @@ kable(text_tbl) %>%
   column_spec(4, width = "20em")
   
 ```
+
